@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/qrasmont/hourglass/app/projects"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -12,21 +14,22 @@ var p *tea.Program
 type State int
 
 const (
-	projectList State = iota
+	projectState State = iota
 )
 
 type MainModel struct {
-	state State
+	state    State
+	projects tea.Model
 }
 
 func New() MainModel {
 	return MainModel{
-		state: projectList,
+		state:    projectState,
+		projects: projects.New(),
 	}
 }
 
 func Start() {
-
 	m := New()
 	p = tea.NewProgram(m)
 	p.EnterAltScreen()
@@ -52,9 +55,11 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	m.projects, cmd = m.projects.Update(msg)
+
 	return m, cmd
 }
 
 func (m MainModel) View() string {
-	return "app"
+	return m.projects.View()
 }
