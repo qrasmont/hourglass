@@ -6,6 +6,12 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+type BackMsg struct{}
+
+func BackCmd() tea.Msg {
+	return BackMsg{}
+}
+
 type Model struct {
 	project     *tea.Model
 	span        time.Duration
@@ -28,6 +34,17 @@ func (m Model) Init() tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+
+	switch msg := msg.(type) {
+
+	case tea.KeyMsg:
+		switch msg.String() {
+
+		case "b":
+			return m, BackCmd
+		}
+	}
+
 	return m, cmd
 }
 

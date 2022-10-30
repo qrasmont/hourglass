@@ -5,6 +5,12 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+type TimerMsg struct{}
+
+func TimerCmd() tea.Msg {
+	return TimerMsg{}
+}
+
 type Project struct {
 	name        string
 	description string
@@ -51,8 +57,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.list.SetSize(msg.Width, msg.Height-1)
-	}
 
+	case tea.KeyMsg:
+		switch msg.String() {
+
+		case "enter":
+			return m, TimerCmd
+		}
+	}
 	m.list, cmd = m.list.Update(msg)
 	return m, cmd
 }

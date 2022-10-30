@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/qrasmont/hourglass/app/projects"
+	"github.com/qrasmont/hourglass/app/timer"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -21,6 +22,7 @@ const (
 type MainModel struct {
 	state    State
 	projects tea.Model
+	timer    tea.Model
 }
 
 func New() MainModel {
@@ -54,13 +56,32 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		}
+
+	case projects.TimerMsg:
+		m.state = timerState
+		m.timer = timer.New(nil, "")
+
+	case timer.BackMsg:
+		m.state = projectState
 	}
 
-	m.projects, cmd = m.projects.Update(msg)
+	switch m.state {
+	case projectState:
+		m.projects, cmd = m.projects.Update(msg)
+	case timerState:
+		m.timer, cmd = m.timer.Update(msg)
+	}
 
 	return m, cmd
 }
 
 func (m MainModel) View() string {
-	return m.projects.View()
+	switch m.state {
+	case projectState:
+		return m.projects.View()
+	case timerState:
+		return m.timer.View()
+	}
+
+	return ""
 }
