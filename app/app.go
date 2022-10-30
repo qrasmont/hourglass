@@ -15,6 +15,7 @@ type State int
 
 const (
 	projectState State = iota
+	timerState
 )
 
 type MainModel struct {
