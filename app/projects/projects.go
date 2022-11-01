@@ -32,6 +32,7 @@ func (p Project) Description() string {
 }
 
 type Model struct {
+	items []Project
 	list  list.Model
 	input textinput.Model
 }
@@ -75,7 +76,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch msg.String() {
 
 			case "enter":
-				cmd = m.list.InsertItem(-1, Project{name: m.input.Value(), description: ""})
+				m.items = append(m.items, Project{name: m.input.Value(), description: ""})
+				cmd = m.list.SetItems(toListItems(m.items))
 				cmds = append(cmds, cmd)
 
 				m.input.SetValue("")
@@ -118,4 +120,12 @@ func (m Model) View() string {
 	}
 
 	return "\n" + m.list.View()
+}
+
+func toListItems(projects []Project) []list.Item {
+	items := make([]list.Item, len(projects))
+	for i, project := range projects {
+		items[i] = list.Item(project)
+	}
+	return items
 }
