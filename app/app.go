@@ -57,9 +57,9 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 
-	case projects.TimerMsg:
+	case projects.GoToTimerMsg:
 		m.state = timerState
-		m.timer = timer.New(nil, "")
+		m.timer = timer.New(msg.ProjectName, "")
 
 	case timer.BackMsg:
 		m.state = projectState

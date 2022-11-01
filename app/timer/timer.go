@@ -39,16 +39,16 @@ func TickCmd() tea.Msg {
 }
 
 type Model struct {
-	project      *tea.Model
+	name         string
 	current_span time.Duration
 	description  string
 	running      bool
 	last_time    time.Time
 }
 
-func New(project *tea.Model, description string) tea.Model {
+func New(name string, description string) tea.Model {
 	m := Model{
-		project:      project,
+		name:         name,
 		current_span: time.Duration(0),
 		description:  description,
 		running:      false,
@@ -94,7 +94,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	title := titleSyle.Render("Project Name")
+	title := titleSyle.Render(m.name)
 	counter := counterStyle.Render(fmt.Sprintf("%s", m.current_span.Round(time.Second)))
 	return pageSytle.Render(title + "\n" + counter)
 }

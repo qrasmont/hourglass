@@ -8,10 +8,14 @@ import (
 
 var WindowSize tea.WindowSizeMsg
 
-type TimerMsg struct{}
+type GoToTimerMsg struct {
+	ProjectName string
+}
 
-func TimerCmd() tea.Msg {
-	return TimerMsg{}
+func GoToTimerCmd(name string) tea.Cmd {
+	return func() tea.Msg {
+		return GoToTimerMsg{ProjectName: name}
+	}
 }
 
 type Project struct {
@@ -96,7 +100,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch msg.String() {
 
 			case "enter":
-				cmd = TimerCmd
+				projectName := m.items[m.list.Index()].name
+				cmd = GoToTimerCmd(projectName)
 
 			case "a":
 				m.input.Focus()
@@ -120,6 +125,10 @@ func (m Model) View() string {
 	}
 
 	return "\n" + m.list.View()
+}
+
+func (m Model) GetSelectedName() string {
+	return m.items[m.list.Index()].name
 }
 
 func toListItems(projects []Project) []list.Item {
