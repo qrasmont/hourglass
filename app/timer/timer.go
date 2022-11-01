@@ -5,6 +5,24 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+)
+
+var (
+	pageSytle = lipgloss.NewStyle().
+			Padding(1, 2)
+
+	titleSyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("230")).
+			Background(lipgloss.Color("62")).
+			Padding(0, 1).
+			MarginBottom(1)
+
+	counterStyle = lipgloss.NewStyle().
+			BorderStyle(lipgloss.RoundedBorder()).
+			Padding(1, 0).
+			Width(15).
+			Align(lipgloss.Center)
 )
 
 type BackMsg struct{}
@@ -76,5 +94,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	return "Project Name" + "\n" + "Spent: \n" + fmt.Sprintf("%s", m.current_span.Round(time.Second))
+	title := titleSyle.Render("Project Name")
+	counter := counterStyle.Render(fmt.Sprintf("%s", m.current_span.Round(time.Second)))
+	return pageSytle.Render(title + "\n" + counter)
 }
