@@ -72,7 +72,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "b", "esc":
 			return m, BackCmd
-		case "s":
+		case " ":
 			m.running = !m.running
 
 			if m.running {
