@@ -23,6 +23,10 @@ var (
 			Padding(1, 0).
 			Width(15).
 			Align(lipgloss.Center)
+
+	runningCounterStyle = counterStyle.Copy().
+				BorderForeground(lipgloss.Color("48")).
+				Foreground(lipgloss.Color("48"))
 )
 
 type BackMsg struct{}
@@ -95,6 +99,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	title := titleSyle.Render(m.name)
-	counter := counterStyle.Render(fmt.Sprintf("%s", m.current_span.Round(time.Second)))
-	return pageSytle.Render(title + "\n" + counter)
+	counter := fmt.Sprintf("%s", m.current_span.Round(time.Second))
+
+	var counterStyled string
+	if m.running {
+		counterStyled = runningCounterStyle.Render(counter)
+	} else {
+		counterStyled = counterStyle.Render(counter)
+	}
+
+	return pageSytle.Render(title + "\n" + counterStyled)
 }
