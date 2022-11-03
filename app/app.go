@@ -6,11 +6,17 @@ import (
 
 	"github.com/qrasmont/hourglass/app/projects"
 	"github.com/qrasmont/hourglass/app/timer"
+	"github.com/qrasmont/hourglass/data/project"
+	"github.com/qrasmont/hourglass/data/record"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-var p *tea.Program
+var (
+	p         *tea.Program
+	projectDb *project.GormRepository
+	recordDb  *record.GormRepository
+)
 
 type State int
 
@@ -32,7 +38,9 @@ func New() MainModel {
 	}
 }
 
-func Start() {
+func Start(project project.GormRepository, record record.GormRepository) {
+	projectDb = &project
+	recordDb = &record
 	m := New()
 	p = tea.NewProgram(m)
 	p.EnterAltScreen()
