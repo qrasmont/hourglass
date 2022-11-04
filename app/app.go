@@ -31,17 +31,17 @@ type MainModel struct {
 	timer    tea.Model
 }
 
-func New() MainModel {
+func New(prjs []projects.Project) MainModel {
 	return MainModel{
 		state:    projectState,
-		projects: projects.New(),
+		projects: projects.New(prjs),
 	}
 }
 
 func Start(project project.GormRepository, record record.GormRepository) {
 	projectDb = &project
 	recordDb = &record
-	m := New()
+	m := New(getProjects())
 	p = tea.NewProgram(m)
 	p.EnterAltScreen()
 	if err := p.Start(); err != nil {
@@ -92,4 +92,20 @@ func (m MainModel) View() string {
 	}
 
 	return ""
+}
+
+func getProjects() []projects.Project {
+	dbPrj, err := projectDb.GetProjects()
+	if err != nil {
+		// No projects in db
+		return []projects.Project{}
+	}
+
+	prjs := make([]projects.Project, len(dbPrj))
+
+	for i, p := range dbPrj {
+		prjs[i] = projects.Project{Name: p.Name}
+	}
+
+	return prjs
 }

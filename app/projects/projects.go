@@ -19,16 +19,16 @@ func GoToTimerCmd(name string) tea.Cmd {
 }
 
 type Project struct {
-	name        string
+	Name        string
 	description string
 }
 
 func (p Project) FilterValue() string {
-	return p.name
+	return p.Name
 }
 
 func (p Project) Title() string {
-	return p.name
+	return p.Name
 }
 
 func (p Project) Description() string {
@@ -41,7 +41,7 @@ type Model struct {
 	input textinput.Model
 }
 
-func New() tea.Model {
+func New(prjs []Project) tea.Model {
 
 	input := textinput.New()
 	input.Prompt = "> "
@@ -50,9 +50,12 @@ func New() tea.Model {
 	input.Width = 50
 
 	m := Model{
+		items: prjs,
 		list:  list.NewModel([]list.Item{}, list.NewDefaultDelegate(), 0, 0),
 		input: input,
 	}
+
+	m.list.SetItems(toListItems(m.items))
 
 	m.list.Title = "Projects"
 	m.list.SetShowStatusBar(false)
@@ -80,7 +83,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch msg.String() {
 
 			case "enter":
-				m.items = append(m.items, Project{name: m.input.Value(), description: ""})
+				m.items = append(m.items, Project{Name: m.input.Value(), description: ""})
 				cmd = m.list.SetItems(toListItems(m.items))
 				cmds = append(cmds, cmd)
 
@@ -100,7 +103,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch msg.String() {
 
 			case "enter":
-				projectName := m.items[m.list.Index()].name
+				projectName := m.items[m.list.Index()].Name
 				cmd = GoToTimerCmd(projectName)
 
 			case "a":
@@ -128,7 +131,7 @@ func (m Model) View() string {
 }
 
 func (m Model) GetSelectedName() string {
-	return m.items[m.list.Index()].name
+	return m.items[m.list.Index()].Name
 }
 
 func toListItems(projects []Project) []list.Item {
