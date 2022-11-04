@@ -56,6 +56,8 @@ func (m MainModel) Init() tea.Cmd {
 
 func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+	var cmds []tea.Cmd
+
 	switch msg := msg.(type) {
 
 	case tea.KeyMsg:
@@ -69,6 +71,15 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.state = timerState
 		m.timer = timer.New(msg.ProjectName, "")
 
+	case projects.AddProjectMsg:
+		_, err := projectDb.CreateProject(msg.ProjectName)
+		if err != nil {
+			s := fmt.Sprintf("%v\n", err)
+			panic(s)
+		}
+		cmd = projects.RedrawProjectsCmd(getProjects())
+		cmds = append(cmds, cmd)
+
 	case timer.BackMsg:
 		m.state = projectState
 	}
@@ -76,11 +87,13 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m.state {
 	case projectState:
 		m.projects, cmd = m.projects.Update(msg)
+		cmds = append(cmds, cmd)
 	case timerState:
 		m.timer, cmd = m.timer.Update(msg)
+		cmds = append(cmds, cmd)
 	}
 
-	return m, cmd
+	return m, tea.Batch(cmds...)
 }
 
 func (m MainModel) View() string {

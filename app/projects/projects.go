@@ -18,6 +18,26 @@ func GoToTimerCmd(name string) tea.Cmd {
 	}
 }
 
+type AddProjectMsg struct {
+	ProjectName string
+}
+
+func addProjectCmd(name string) tea.Cmd {
+	return func() tea.Msg {
+		return AddProjectMsg{ProjectName: name}
+	}
+}
+
+type RedrawProjectsMsg struct {
+	projects []Project
+}
+
+func RedrawProjectsCmd(prjs []Project) tea.Cmd {
+	return func() tea.Msg {
+		return RedrawProjectsMsg{projects: prjs}
+	}
+}
+
 type Project struct {
 	Name        string
 	description string
@@ -83,8 +103,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch msg.String() {
 
 			case "enter":
-				m.items = append(m.items, Project{Name: m.input.Value(), description: ""})
-				cmd = m.list.SetItems(toListItems(m.items))
+				cmd = addProjectCmd(m.input.Value())
 				cmds = append(cmds, cmd)
 
 				m.input.SetValue("")
@@ -117,6 +136,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		}
 
+	case RedrawProjectsMsg:
+		m.items = msg.projects
+		cmd = m.list.SetItems(toListItems(m.items))
+		cmds = append(cmds, cmd)
 	}
 
 	return m, tea.Batch(cmds...)

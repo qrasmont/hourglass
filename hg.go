@@ -15,7 +15,7 @@ func openDataBase() *gorm.DB {
 		panic("failed to connect database")
 	}
 
-	// TODO Handle migrations right here
+	err = db.AutoMigrate(&project.Project{}, &record.Record{})
 
 	return db
 }
