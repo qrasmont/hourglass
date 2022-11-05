@@ -40,7 +40,15 @@ func addProjectCmd(name string) tea.Cmd {
 	}
 }
 
+func deleteProjectCmd(id uint) tea.Cmd {
+	return func() tea.Msg {
+		deleteProject(id)
+		return RedrawProjectsMsg{projects: getProjects()}
+	}
+}
+
 type Project struct {
+	Id          uint
 	Name        string
 	description string
 }
@@ -132,6 +140,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.input.Focus()
 				m.list.SetSize(WindowSize.Width, WindowSize.Height-3)
 				cmd = textinput.Blink
+
+			case "d":
+				id := m.items[m.list.Index()].Id
+				cmd = deleteProjectCmd(id)
+
 			default:
 				m.list, cmd = m.list.Update(msg)
 			}
@@ -178,8 +191,15 @@ func getProjects() []Project {
 	prjs := make([]Project, len(dbPrj))
 
 	for i, p := range dbPrj {
-		prjs[i] = Project{Name: p.Name}
+		prjs[i] = Project{Name: p.Name, Id: p.ID}
 	}
 
 	return prjs
+}
+
+func deleteProject(id uint) {
+	err := projectDb.DeleteProject(id)
+	if err != nil {
+		panic("Could not delete the project")
+	}
 }
