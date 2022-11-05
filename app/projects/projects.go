@@ -1,12 +1,18 @@
 package projects
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/qrasmont/hourglass/data/project"
 )
 
-var WindowSize tea.WindowSizeMsg
+var (
+	WindowSize tea.WindowSizeMsg
+	projectDb  *project.GormRepository
+)
 
 type GoToTimerMsg struct {
 	ProjectName string
@@ -18,23 +24,19 @@ func GoToTimerCmd(name string) tea.Cmd {
 	}
 }
 
-type AddProjectMsg struct {
-	ProjectName string
-}
-
-func addProjectCmd(name string) tea.Cmd {
-	return func() tea.Msg {
-		return AddProjectMsg{ProjectName: name}
-	}
-}
-
 type RedrawProjectsMsg struct {
 	projects []Project
 }
 
-func RedrawProjectsCmd(prjs []Project) tea.Cmd {
+func addProjectCmd(name string) tea.Cmd {
 	return func() tea.Msg {
-		return RedrawProjectsMsg{projects: prjs}
+		_, err := projectDb.CreateProject(name)
+		if err != nil {
+			s := fmt.Sprintf("%v\n", err)
+			panic(s)
+		}
+
+		return RedrawProjectsMsg{projects: getProjects()}
 	}
 }
 
@@ -61,8 +63,9 @@ type Model struct {
 	input textinput.Model
 }
 
-func New(prjs []Project) tea.Model {
+func New(db *project.GormRepository) tea.Model {
 
+	projectDb = db
 	input := textinput.New()
 	input.Prompt = "> "
 	input.Placeholder = "project name"
@@ -70,7 +73,7 @@ func New(prjs []Project) tea.Model {
 	input.Width = 50
 
 	m := Model{
-		items: prjs,
+		items: getProjects(),
 		list:  list.NewModel([]list.Item{}, list.NewDefaultDelegate(), 0, 0),
 		input: input,
 	}
@@ -163,4 +166,20 @@ func toListItems(projects []Project) []list.Item {
 		items[i] = list.Item(project)
 	}
 	return items
+}
+
+func getProjects() []Project {
+	dbPrj, err := projectDb.GetProjects()
+	if err != nil {
+		// No projects in db
+		return []Project{}
+	}
+
+	prjs := make([]Project, len(dbPrj))
+
+	for i, p := range dbPrj {
+		prjs[i] = Project{Name: p.Name}
+	}
+
+	return prjs
 }
