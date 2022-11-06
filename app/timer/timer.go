@@ -6,6 +6,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/qrasmont/hourglass/app/projects"
+	"github.com/qrasmont/hourglass/data/record"
 )
 
 var (
@@ -27,6 +29,8 @@ var (
 	runningCounterStyle = counterStyle.Copy().
 				BorderForeground(lipgloss.Color("48")).
 				Foreground(lipgloss.Color("48"))
+
+	recordsDb *record.GormRepository
 )
 
 type BackMsg struct{}
@@ -42,19 +46,31 @@ func TickCmd() tea.Msg {
 	return TickMsg{}
 }
 
+type WrapperUpMsg struct{}
+
+func WrapUpCmd(pId uint, duration time.Duration) tea.Cmd {
+	return func() tea.Msg {
+		logDuration(pId, duration)
+		return WrapperUpMsg{}
+	}
+}
+
 type Model struct {
 	name         string
+	projectId    uint
 	current_span time.Duration
 	description  string
 	running      bool
 	last_time    time.Time
 }
 
-func New(name string, description string) tea.Model {
+func New(project *projects.Project, db *record.GormRepository) tea.Model {
+	recordsDb = db
 	m := Model{
-		name:         name,
+		name:         project.Name,
+		projectId:    project.Id,
 		current_span: time.Duration(0),
-		description:  description,
+		description:  "",
 		running:      false,
 	}
 
@@ -75,7 +91,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 
 		case "b", "esc":
-			return m, BackCmd
+			cmd = WrapUpCmd(m.projectId, m.current_span)
 		case " ":
 			m.running = !m.running
 
@@ -91,6 +107,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.last_time = time.Now()
 			cmd = TickCmd
 		}
+
+	case WrapperUpMsg:
+		cmd = BackCmd
 	}
 
 	cmds = append(cmds, cmd)
@@ -109,4 +128,20 @@ func (m Model) View() string {
 	}
 
 	return pageSytle.Render(title + "\n" + counterStyled)
+}
+
+func logDuration(pId uint, duration time.Duration) {
+	// TODO handle day switch here ?
+	record, err := recordsDb.GetRecordForProjectForDay(pId, time.Now())
+	if err != nil {
+		// No record for today
+		recordsDb.CreateRecord(duration, pId, time.Now())
+		return
+	}
+
+	record.Duration += duration
+	err = recordsDb.UpdateRecord(record)
+	if err != nil {
+		panic("Could not update record")
+	}
 }

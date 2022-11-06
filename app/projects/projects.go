@@ -15,12 +15,12 @@ var (
 )
 
 type GoToTimerMsg struct {
-	ProjectName string
+	P *Project
 }
 
-func GoToTimerCmd(name string) tea.Cmd {
+func GoToTimerCmd(p *Project) tea.Cmd {
 	return func() tea.Msg {
-		return GoToTimerMsg{ProjectName: name}
+		return GoToTimerMsg{P: p}
 	}
 }
 
@@ -133,8 +133,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch msg.String() {
 
 			case "enter":
-				projectName := m.items[m.list.Index()].Name
-				cmd = GoToTimerCmd(projectName)
+				p := m.items[m.list.Index()]
+				cmd = GoToTimerCmd(&p)
 
 			case "a":
 				m.input.Focus()
