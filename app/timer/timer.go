@@ -62,16 +62,19 @@ type Model struct {
 	description  string
 	running      bool
 	last_time    time.Time
+	spent        time.Duration
 }
 
 func New(project *projects.Project, db *record.GormRepository) tea.Model {
 	recordsDb = db
+	spent := getAlreadySpent(project.Id)
 	m := Model{
 		name:         project.Name,
 		projectId:    project.Id,
 		current_span: time.Duration(0),
 		description:  "",
 		running:      false,
+		spent:        spent,
 	}
 
 	return m
@@ -118,6 +121,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	title := titleSyle.Render(m.name)
+	spent := fmt.Sprintf("Spent: %s", m.spent.Round(time.Second))
 	counter := fmt.Sprintf("%s", m.current_span.Round(time.Second))
 
 	var counterStyled string
@@ -127,7 +131,7 @@ func (m Model) View() string {
 		counterStyled = counterStyle.Render(counter)
 	}
 
-	return pageSytle.Render(title + "\n" + counterStyled)
+	return pageSytle.Render(title + "\n" + spent + "\n" + counterStyled)
 }
 
 func logDuration(pId uint, duration time.Duration) {
@@ -135,13 +139,27 @@ func logDuration(pId uint, duration time.Duration) {
 	record, err := recordsDb.GetRecordForProjectForDay(pId, time.Now())
 	if err != nil {
 		// No record for today
-		recordsDb.CreateRecord(duration, pId, time.Now())
+		err = recordsDb.CreateRecord(duration, pId, time.Now())
+		if err != nil {
+			m := fmt.Sprintf("%v", err)
+			panic(m)
+		}
 		return
 	}
 
 	record.Duration += duration
 	err = recordsDb.UpdateRecord(record)
 	if err != nil {
-		panic("Could not update record")
+		m := fmt.Sprintf("%v", err)
+		panic(m)
 	}
+}
+
+func getAlreadySpent(pId uint) time.Duration {
+	record, err := recordsDb.GetRecordForProjectForDay(pId, time.Now())
+	if err != nil {
+		return time.Duration(0)
+	}
+
+	return record.Duration
 }
