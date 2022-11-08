@@ -69,36 +69,63 @@ func (g *GormRepository) GetRecords(projectID uint) ([]Record, error) {
 
 func (g *GormRepository) GetRecordsForDay(date time.Time) ([]Record, error) {
 	var records []Record
-	result := g.DB.Where(&Record{Day: date.Day(), Month: date.Month(), Year: date.Year()}).Find(&records)
+	result := g.DB.Where(
+		"day = ? AND month = ? AND year = ?",
+		date.Day(),
+		date.Month(),
+		date.Year()).
+		Find(&records)
 	return records, result.Error
 }
 
 func (g *GormRepository) GetRecordsForMonth(date time.Time) ([]Record, error) {
 	var records []Record
-	result := g.DB.Where(&Record{Month: date.Month(), Year: date.Year()}).Find(&records)
+	result := g.DB.Where(
+		"month = ? AND year = ?",
+		date.Month(),
+		date.Year()).
+		Find(&records)
 	return records, result.Error
 }
 
 func (g *GormRepository) GetRecordsForYear(date time.Time) ([]Record, error) {
 	var records []Record
-	result := g.DB.Where(&Record{Year: date.Year()}).Find(&records)
+	result := g.DB.Where(
+		"year = ?",
+		date.Year()).
+		Find(&records)
 	return records, result.Error
 }
 
 func (g *GormRepository) GetRecordForProjectForDay(projectID uint, date time.Time) (Record, error) {
 	var record Record
-	result := g.DB.Where(&Record{ProjectID: projectID, Day: date.Day(), Month: date.Month(), Year: date.Year()}).Find(&record)
+	result := g.DB.Where(
+		"project_id = ? AND day = ? AND month = ? AND year = ?",
+		projectID,
+		date.Day(),
+		date.Month(),
+		date.Year()).
+		First(&record)
 	return record, result.Error
 }
 
 func (g *GormRepository) GetRecordsForProjectForMonth(projectID uint, date time.Time) ([]Record, error) {
 	var records []Record
-	result := g.DB.Where(&Record{ProjectID: projectID, Month: date.Month(), Year: date.Year()}).Find(&records)
+	result := g.DB.Where(
+		"project_id = ? AND month = ? AND year = ?",
+		projectID,
+		date.Month(),
+		date.Year()).
+		Find(&records)
 	return records, result.Error
 }
 
 func (g *GormRepository) GetRecordsForProjectForYear(projectID uint, date time.Time) ([]Record, error) {
 	var records []Record
-	result := g.DB.Where(&Record{ProjectID: projectID, Year: date.Year()}).Find(&records)
+	result := g.DB.Where(
+		"project_id = ? AND year = ?",
+		projectID,
+		date.Year()).
+		Find(&records)
 	return records, result.Error
 }
